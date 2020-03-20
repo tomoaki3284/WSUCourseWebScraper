@@ -1,4 +1,4 @@
-package tomoaki;
+package tomoaki.courseClasses;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

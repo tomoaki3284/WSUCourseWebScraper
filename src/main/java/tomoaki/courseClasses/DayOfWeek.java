@@ -1,4 +1,4 @@
-package tomoaki;
+package tomoaki.courseClasses;
 
 public enum DayOfWeek {
 	MONDAY   (1),

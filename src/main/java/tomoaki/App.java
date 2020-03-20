@@ -1,11 +1,13 @@
 package tomoaki;
 
+import tomoaki.WebScraper.Scraper;
+
 /**
  * Hello world!
  *
  */
 public class App {
     public static void main( String[] args ) {
-        System.out.println( "Hello World!" );
+        Scraper scraper = new Scraper();
     }
 }
