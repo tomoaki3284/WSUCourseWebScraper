@@ -10,6 +10,23 @@ public class Hours {
 
   // hours [0..23]/minute[0..59] in military (24h format)
   private int startHour, startMinute, endHour, endMinute;
+  private String milTime;
+  
+  public void setStartHour(int startHour) {
+    this.startHour = startHour;
+  }
+  
+  public void setStartMinute(int startMinute) {
+    this.startMinute = startMinute;
+  }
+  
+  public void setEndHour(int endHour) {
+    this.endHour = endHour;
+  }
+  
+  public void setEndMinute(int endMinute) {
+    this.endMinute = endMinute;
+  }
 
   // match the open-close hours using regular expression pattern
   // Notes:
@@ -26,7 +43,18 @@ public class Hours {
   //
   static private Pattern hoursPattern = Pattern
       .compile("(\\d+):(\\d+)(am|pm)\\s*-\\s*(\\d+):(\\d+)(am|pm)");
-
+  
+  public Hours(){
+  
+  }
+  
+  public Hours(int startHour, int startMinute, int endHour, int endMinute) {
+    this.startHour = startHour;
+    this.startMinute = startMinute;
+    this.endHour = endHour;
+    this.endMinute = endMinute;
+  }
+  
   /**
    * Class constructor, takes the opening/closing hours string as parameter Notes: - hours have to
    * be [0..12] - minutes have to be [0..59] - am/pm are required - 12am == middnight - 12pm == noon
@@ -165,6 +193,43 @@ public class Hours {
     } else {
       return (hour + 12) % 24;
     }
+  }
+  
+  public String getMilitaryTime() {
+    if(milTime != null) return milTime;
+    
+    String smilHour = "";
+    String smilMin = "";
+    String emilHour = "";
+    String emilMin = "";
+    if(startHour < 10){
+      smilHour = "0" + startHour;
+    }else{
+      smilHour = Integer.toString(startHour);
+    }
+    if(startMinute < 10){
+      smilMin = "0" + startMinute;
+    }else{
+      smilMin = Integer.toString(startMinute);
+    }
+  
+    if(endHour < 10){
+      emilHour = "0" + endHour;
+    }else{
+      emilHour = Integer.toString(endHour);
+    }
+    if(endMinute < 10){
+      emilMin = "0" + endMinute;
+    }else{
+      emilMin = Integer.toString(endMinute);
+    }
+    
+    milTime =  smilHour + ":" + smilMin + "-" + emilHour + ":" + emilMin;
+    return milTime;
+  }
+  
+  public String toString(){
+    return getMilitaryTime();
   }
 }
 

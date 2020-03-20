@@ -6,10 +6,7 @@ import java.util.List;
 
 public class Course {
 	//first cell
-	private String category;
-	private String crn;
-	private String section;
-	private int level;
+	private String courseCRN;
 	//second cell
 	private String title;
 	//fourth cell
@@ -28,41 +25,32 @@ public class Course {
 		hoursOfDay = new EnumMap<DayOfWeek, Hours>(DayOfWeek.class);
 	}
 	
-	public Course(String classCategory, String courseCRN,  String courseSection, String title, String faculty, String room, double credit, int level) {
-		this.crn = courseCRN;
-		this.section = courseSection;
-		this.category = classCategory;
+	public Course(String courseCRN, String title, String faculty, String room, double credit, List<String> cores, EnumMap<DayOfWeek,Hours> hoursOfDay) {
+		this.courseCRN = courseCRN;
 		this.title = title;
 		this.faculty = faculty;
 		this.room = room;
 		this.credit = credit;
-		this.level = level;
+		this.cores = cores;
+		this.hoursOfDay = hoursOfDay;
+	}
+	
+	public Course(String courseCRN, String title, String faculty, String room, double credit) {
+		this.courseCRN = courseCRN;
+		this.title = title;
+		this.faculty = faculty;
+		this.room = room;
+		this.credit = credit;
 		this.cores = new ArrayList<String>();
 		this.hoursOfDay = new EnumMap<DayOfWeek, Hours>(DayOfWeek.class);
 	}
 	
-	public String getCrn() {
-		return crn;
+	public String getCourseCRN() {
+		return courseCRN;
 	}
 	
-	public void setCrn(String courseCRN) {
-		this.crn = courseCRN;
-	}
-	
-	public String getSection() {
-		return section;
-	}
-	
-	public void setSection(String section) {
-		this.section = section;
-	}
-	
-	public String getCategory() {
-		return category;
-	}
-	
-	public void setCategory(String courseCategory) {
-		this.category = courseCategory;
+	public void setCourseCRN(String courseCRN) {
+		this.courseCRN = courseCRN;
 	}
 	
 	public String getTitle() {
@@ -97,14 +85,6 @@ public class Course {
 		this.credit = credit;
 	}
 	
-	public int getLevel() {
-		return level;
-	}
-	
-	public void setLevel(int level) {
-		this.level = level;
-	}
-	
 	public List<String> getCores() {
 		return cores;
 	}
@@ -132,10 +112,7 @@ public class Course {
 	@Override
 	public String toString() {
 		return "Course{" +
-			"category='" + category + '\'' +
-			", crn='" + crn + '\'' +
-			", section='" + section + '\'' +
-			", level=" + level +
+			"courseCRN='" + courseCRN + '\'' +
 			", title='" + title + '\'' +
 			", faculty='" + faculty + '\'' +
 			", room='" + room + '\'' +

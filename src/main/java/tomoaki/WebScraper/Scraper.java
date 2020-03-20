@@ -1,12 +1,18 @@
 package tomoaki.WebScraper;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.html.DomNode;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.List;
 
 import tomoaki.courseClasses.Course;
@@ -15,13 +21,24 @@ import tomoaki.courseClasses.Hours;
 
 public class Scraper {
 	
+	HashSet<Character> validHoursSet = new HashSet();
 	private List<Course> courses;
 	
 	public Scraper() {
 		this("http://www.westfield.ma.edu/offices/registrar/master-schedule");
 	}
 	
+	public List<Course> getCourses() {
+		return courses;
+	}
+	
+	public void setCourses(List<Course> courses) {
+		this.courses = courses;
+	}
+	
 	public Scraper(String URL) {
+		addValidHoursChar();
+		
 		courses = new ArrayList<Course>();
 		
 		WebClient client = new WebClient();
@@ -51,10 +68,26 @@ public class Scraper {
 			//check
 			for(Course course : courses){
 				System.out.println(course);
+				System.out.println("\n");
 			}
 		}catch(Exception e){
 			e.printStackTrace();
 		}
+	}
+	
+	private void addValidHoursChar() {
+		for(char c='0'; c <= '9'; c++){
+			validHoursSet.add(c);
+		}
+		validHoursSet.add('M');
+		validHoursSet.add('T');
+		validHoursSet.add('W');
+		validHoursSet.add('R');
+		validHoursSet.add('F');
+		validHoursSet.add('S');
+		validHoursSet.add(':');
+		validHoursSet.add('A');
+		validHoursSet.add('P');
 	}
 	
 	private void scrapeEighthCell(Course course, HtmlElement htmlElement) {
@@ -65,7 +98,13 @@ public class Scraper {
 	}
 
 	private void scrapeSevenCell(Course course, HtmlElement htmlElement) {
-		double credit = Double.parseDouble(htmlElement.getTextContent());
+		String content = htmlElement.getTextContent();
+		double credit;
+		try{
+			credit = Double.parseDouble(content);
+		}catch(NumberFormatException e){
+			credit = 0;
+		}
 		course.setCredit(credit);
 	}
 
@@ -73,105 +112,78 @@ public class Scraper {
 		String content = htmlElement.getTextContent();
 		course.setRoom(content);
 	}
-
-	private void scrapeFifthCell(Course course, HtmlElement htmlElement) {
-		EnumMap<DayOfWeek, Hours> hoursOfDay = new EnumMap<DayOfWeek, Hours>(DayOfWeek.class);
-		int countBRTag = htmlElement.getByXPath("br").size();
-		boolean isHybrid = (htmlElement.getByXPath("strong").size() > 0);
-		
-		// isHybrid or amount of <br> tag >= 1, then simple Time structures
-		if(isHybrid || countBRTag >= 1){
-			extractHoursSimple(hoursOfDay, htmlElement.getTextContent(), isHybrid);
-		}else{
-			while(countBRTag >= 0){
-				extractHoursComplex(hoursOfDay, htmlElement.getTextContent());
-				countBRTag--;
-			}
-		}
-		// if isHybrid, then simple Time structure
-		while(countBRTag != 0){
-			
-			countBRTag--;
-		}
-	}
 	
-	private void extractHoursComplex(EnumMap<DayOfWeek, Hours> hoursOfDay, String textContent) {
-		// maximum difference in time is two
-		// format example: "R 09:30 AM-10:30 PMMWF 11:45 AM-12:45 PM"
-		
-		// "R 09:30 AM-10:30 PMMWF 11:45 AM-12:45 PM" -> "R 09:30 AM-10:30 PM" "MWF 11:45 AM-12:45 PM"
-		// "R 09:30 AM-10:30 PM@MWF 11:45 AM-12:45 PM" and then separate by "@"
-		boolean isComplex = false;
-		String[] words = textContent.split(" ");
-		for(int i=0; i<words.length; i++){
-			String word = words[i];
-			if(!word.contains("0") && !word.contains("1")){
-				// search where "PM..." || "AM..."
-				if ((word.contains("AM") || word.contains("PM")) && word.length() >= 3){
-					System.out.println(word);
-					words[i] = word.substring(0,2) + "@" + word.substring(2);
-					isComplex = true;
-				}
-			}
-		}
-		
-		StringBuilder sb = new StringBuilder();
-		for(int i=0; i<words.length; i++){
-			String word = words[i];
-			sb.append(word);
-			if(i != words.length-1){
-				sb.append(" ");
-			}
-		}
-		
-		if(!isComplex){
-			extractHoursSimple(hoursOfDay,textContent,false);
+	/**
+	 * TODO: Detect whether content hours is in complex form or simple form
+	 */
+	private void scrapeFifthCell(Course course, HtmlElement htmlElement) {
+		String content = htmlElement.getTextContent();
+		String[] timeCells = content.split(" ");
+		if(content == null || content.length() == 0 || timeCells.length < 4){
 			return;
 		}
+		EnumMap<DayOfWeek, Hours> hoursOfDay = new EnumMap<DayOfWeek, Hours>(DayOfWeek.class);
 		
-		// split by " " or "@"
-		words = sb.toString().split(" |@");
-		System.out.println(textContent);
-		System.out.println(Arrays.toString(words));
-		for(int i=0; i<words.length; i++){
-			sb.append(words[i]);
-			if(i % 3 == 0){
-				extractHoursSimple(hoursOfDay, sb.toString(), false);
-				sb.setLength(0);
-			}else{
-				sb.append(" ");
-			}
+		// if third(0-base) timeCell length in timeCells is larger than 2, it is complex form
+		if(timeCells[3].length() > 2){
+			extractHoursComplex(hoursOfDay, timeCells);
+			course.setHoursOfDay(hoursOfDay);
+		}else{
+			if(timeCells.length < 10)
+				extractHoursSimple(hoursOfDay, timeCells);
+			course.setHoursOfDay(hoursOfDay);
 		}
 	}
 	
-	private void extractHoursSimple(EnumMap<DayOfWeek, Hours> hoursOfDay, String textContent, boolean isHybrid) {
-		// textContent format example: "TR 12:45 PM-02:00 PM"
-		//                             "TR 12:45 PM-02:00 PMHybrid (...)"
-		
-		// "TR 12:45 PM-02:00 PMHybrid (...)" -> "TR 12:45 PM-02:00 PM"
-		if(isHybrid){
-			String[] hybridWords = new String[]{"Hybrid", "FIRST", "SECOND"};
-			int index = -1;
-			int i = 0;
-			while(index == -1 && i < hybridWords.length){
-				index = textContent.indexOf(hybridWords[i]);
-				i++;
-			}
-			if(index != -1){
-				textContent = textContent.substring(0,index);
+	/**
+	 * TODO: Extract/separate time interval in a form of Simple Form
+	 *
+	 * @param hoursOfDay
+	 * @param timeCells Input Complex Format: "R 09:30 AM-10:30 PMMWF 11:45 AM-12:45 PM"
+	 *                                        "R 09:30 AM-10:30 PMHybrid (...)" -> hours detail
+	 *                                        "R 09:30 AM-10:30 PMFIRST (...)"  -> hours detail
+	 *                                        "R 09:30 AM-10:30 PMSECOND (...)" -> hours detail
+	 *
+	 *                  Input Simple Format:  "R 09:30 AM-10:30 PM"
+	 */
+	private void extractHoursComplex(EnumMap<DayOfWeek, Hours> hoursOfDay, String[] timeCells) {
+		// if third(0-base) timeCell char don't contains validHoursSet char, then there are hours detail and one time interval
+		// So, eliminate those hours details by substring, and extract as simple
+		// this might cause conflict in future, if there are two hours + hours details like (hybrid, etc)
+		String concatCell = timeCells[3];
+		for(char c : concatCell.toCharArray()){
+			if(!validHoursSet.contains(c)){
+				timeCells[3] = concatCell.substring(0,2);
+				String[] newTimeCells = new String[]{timeCells[0],timeCells[1],timeCells[2],timeCells[3]};
+				extractHoursSimple(hoursOfDay, newTimeCells);
+				return;
 			}
 		}
 		
-		String[] timeBox = textContent.split(" ");
-		if(timeBox.length < 4) return;
-		
+		// if there are no hours detail on concatCell(third time cell), then timeCells has two(or more) time interval.
+		// put @ between and separate them
+		// split by single/multiple spaces, and then extract as simple
+		timeCells[3] = concatCell.substring(0,2) + "@" + concatCell.substring(2);
+		StringBuilder sb = new StringBuilder();
+		for(String timeCell : timeCells){
+			sb.append(timeCell);
+			sb.append(" ");
+		}
+		String newContent = sb.toString().trim();
+		String[] timesCells = newContent.split("@");
+		for(String tc : timesCells){
+			extractHoursSimple(hoursOfDay, tc.split("\\s+"));
+		}
+	}
+	
+	private void extractHoursSimple(EnumMap<DayOfWeek, Hours> hoursOfDay, String[] timeBox) {
 		//"TR" -> 'T' 'R'
 		char[] days = timeBox[0].toCharArray();
 		
 		// "PM-02:00" -> "PM" "02:00"
 		String[] timeTag_endTime = timeBox[2].split("-");
 		
-		//concat times
+		//concat times // might change it to StringBuilder for time complexity
 		String startTime = timeBox[1] + timeTag_endTime[0].toLowerCase();
 		String endTime = timeTag_endTime[1] + timeBox[timeBox.length-1].toLowerCase();
 		String interval = startTime + "-" + endTime;
@@ -184,8 +196,10 @@ public class Scraper {
 					case 'W': hoursOfDay.put(DayOfWeek.WEDNESDAY, hours); break;
 					case 'R': hoursOfDay.put(DayOfWeek.THURSDAY, hours); break;
 					case 'F': hoursOfDay.put(DayOfWeek.FRIDAY, hours); break;
+					case 'S': hoursOfDay.put(DayOfWeek.SATURDAY,hours); break;
 				}
 			}
+			
 		}catch(Exception e){
 			System.out.println(interval);
 			e.printStackTrace();
@@ -199,31 +213,34 @@ public class Scraper {
 
 	private void scrapeSecondCell(Course course, HtmlElement htmlElement) {
 		String title = htmlElement.getTextContent();
+		DomNode anchor = htmlElement.getFirstByXPath("a");
+		if(anchor != null){
+			title = anchor.getTextContent();
+		}
 		course.setTitle(title);
 	}
 
 	private void scrapeFirstCell(Course course, HtmlElement htmlElement) {
 		String content = htmlElement.getTextContent();
-		
-		String[] contents = content.split(" ");
-		
-		if(contents.length != 3) return;
-		
-		String category = contents[0];
-		String[] level_section = contents[1].split("-");
-		
-		if(level_section.length <= 1){
-			System.out.println(htmlElement.getTextContent());
-			return;
+		course.setCourseCRN(content);
+	}
+	
+	public void writeToJSON(String jsonFileName) {
+		// write to JSON
+		File menuFile = new File(jsonFileName);
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			mapper.writerFor(new TypeReference<List<Course>>() {
+			}).withDefaultPrettyPrinter()
+				.writeValue(menuFile, courses);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		
-		int level = Integer.parseInt(level_section[0]);
-		String section = level_section[1];
-		String crn = contents[2].substring(1,contents[2].length()-1);
-
-		course.setCategory(category);
-		course.setLevel(level);
-		course.setSection(section);
-		course.setCrn(crn);
+	}
+	
+	public static void main(String[] args) {
+		Scraper scraper = new Scraper();
+		List<Course> courses = scraper.getCourses();
+		scraper.writeToJSON("current-semester.json");
 	}
 }
