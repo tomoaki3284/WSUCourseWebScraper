@@ -20,8 +20,7 @@ import tomoaki.courseClasses.DayOfWeek;
 import tomoaki.courseClasses.Hours;
 
 public class Scraper {
-	
-	HashSet<Character> validHoursSet = new HashSet();
+
 	private List<Course> courses;
 	
 	public Scraper() {
@@ -37,8 +36,6 @@ public class Scraper {
 	}
 	
 	public Scraper(String URL) {
-		addValidHoursChar();
-		
 		courses = new ArrayList<Course>();
 		
 		WebClient client = new WebClient();
@@ -73,21 +70,6 @@ public class Scraper {
 		}catch(Exception e){
 			e.printStackTrace();
 		}
-	}
-	
-	private void addValidHoursChar() {
-		for(char c='0'; c <= '9'; c++){
-			validHoursSet.add(c);
-		}
-		validHoursSet.add('M');
-		validHoursSet.add('T');
-		validHoursSet.add('W');
-		validHoursSet.add('R');
-		validHoursSet.add('F');
-		validHoursSet.add('S');
-		validHoursSet.add(':');
-		validHoursSet.add('A');
-		validHoursSet.add('P');
 	}
 	
 	private void scrapeEighthCell(Course course, HtmlElement htmlElement) {
