@@ -67,8 +67,8 @@ public class Scraper {
 			
 			//check
 			for(Course course : courses){
-				System.out.println(course);
-				System.out.println("\n");
+				System.out.println(course.getTimeContent());
+				System.out.println("------------------------------");
 			}
 		}catch(Exception e){
 			e.printStackTrace();
@@ -115,10 +115,24 @@ public class Scraper {
 	
 	/**
 	 * TODO: Detect whether content hours is in complex form or simple form
+	 * Remove unneeded content: <strong>Hybrid(...)</>
+	 *                          <strong>First/Second(...)</>
+	 *                          if child node exist
 	 */
 	private void scrapeFifthCell(Course course, HtmlElement htmlElement) {
 		String content = htmlElement.getTextContent();
-		String[] timeCells = content.split(" ");
+		
+		DomNode child = htmlElement.getLastElementChild();
+		String childTagName = null;
+		if(child != null){
+			String timeContent = child.getTextContent().trim();
+			course.setTimeContent(timeContent);
+			childTagName = child.getNodeName();
+			htmlElement.removeChild(childTagName,0);
+			content = htmlElement.getTextContent();
+		}
+		
+		String[] timeCells = content.split("\\s+");
 		if(content == null || content.length() == 0 || timeCells.length < 4){
 			return;
 		}
@@ -126,11 +140,11 @@ public class Scraper {
 		
 		// if third(0-base) timeCell length in timeCells is larger than 2, it is complex form
 		if(timeCells[3].length() > 2){
-			extractHoursComplex(hoursOfDay, timeCells);
+			extractHoursComplex(course, hoursOfDay, content);
 			course.setHoursOfDay(hoursOfDay);
 		}else{
 			if(timeCells.length < 10)
-				extractHoursSimple(hoursOfDay, timeCells);
+				extractHoursSimple(course, hoursOfDay, content);
 			course.setHoursOfDay(hoursOfDay);
 		}
 	}
@@ -139,44 +153,44 @@ public class Scraper {
 	 * TODO: Extract/separate time interval in a form of Simple Form
 	 *
 	 * @param hoursOfDay
-	 * @param timeCells Input Complex Format: "R 09:30 AM-10:30 PMMWF 11:45 AM-12:45 PM"
-	 *                                        "R 09:30 AM-10:30 PMHybrid (...)" -> hours detail
-	 *                                        "R 09:30 AM-10:30 PMFIRST (...)"  -> hours detail
-	 *                                        "R 09:30 AM-10:30 PMSECOND (...)" -> hours detail
+	 * @param timeAsText Input Complex Format: "R 09:30 AM-10:30 PMMWF 11:45 AM-12:45 PM"
 	 *
-	 *                  Input Simple Format:  "R 09:30 AM-10:30 PM"
+	 *                   Input Simple Format:  "R 09:30 AM-10:30 PM"
 	 */
-	private void extractHoursComplex(EnumMap<DayOfWeek, Hours> hoursOfDay, String[] timeCells) {
-		// if third(0-base) timeCell char don't contains validHoursSet char, then there are hours detail and one time interval
-		// So, eliminate those hours details by substring, and extract as simple
-		// this might cause conflict in future, if there are two hours + hours details like (hybrid, etc)
-		String concatCell = timeCells[3];
-		for(char c : concatCell.toCharArray()){
-			if(!validHoursSet.contains(c)){
-				timeCells[3] = concatCell.substring(0,2);
-				String[] newTimeCells = new String[]{timeCells[0],timeCells[1],timeCells[2],timeCells[3]};
-				extractHoursSimple(hoursOfDay, newTimeCells);
-				return;
-			}
+	private void extractHoursComplex(Course course, EnumMap<DayOfWeek, Hours> hoursOfDay, String timeAsText) {
+		String[] timeCells = timeAsText.split("\\s+");
+		
+		// timeCells has two(or more) time interval.
+		// ex: T 03:45 PM-05:45 PMMW 09:20 AM-10:10 AMF03:45 PM-05:45PM
+		// put @ between in every 3rd(0-base) cell to separate time interval properly
+		for(int i=3; i<timeCells.length; i+=3){
+			String endOfFirstTimeInterval = timeCells[i].substring(0,2);
+			String startOfSecondTimeInterval = timeCells[i].substring(2);
+			timeCells[i] = endOfFirstTimeInterval + "@" + startOfSecondTimeInterval;
 		}
 		
-		// if there are no hours detail on concatCell(third time cell), then timeCells has two(or more) time interval.
-		// put @ between and separate them
-		// split by single/multiple spaces, and then extract as simple
-		timeCells[3] = concatCell.substring(0,2) + "@" + concatCell.substring(2);
-		StringBuilder sb = new StringBuilder();
+		// simply convert timeCells to textFormat
+		//  FROM: [T][03:45][PM-05:45][PM@MW][09:20]....[PM-05:45][PM]
+		//  TO  :  T 03:45 PM-05:45 PM@MW 09:20 AM-10:10 AM@F03:45 PM-05:45 PM
+		StringBuilder intervalTimeAsTextSB = new StringBuilder();
 		for(String timeCell : timeCells){
-			sb.append(timeCell);
-			sb.append(" ");
+			intervalTimeAsTextSB.append(timeCell);
+			intervalTimeAsTextSB.append(" ");
 		}
-		String newContent = sb.toString().trim();
-		String[] timesCells = newContent.split("@");
-		for(String tc : timesCells){
-			extractHoursSimple(hoursOfDay, tc.split("\\s+"));
+		
+		// T 03:45 PM-05:45 PM@MW 09:20 AM-10:10 AM@F03:45 PM-05:45 PM
+		// split by single/multiple spaces, and then extract as simple
+		String multipleTimeIntervalAsText = intervalTimeAsTextSB.toString().trim();
+		String[] timeIntervals = multipleTimeIntervalAsText.split("@");
+		for(String timeInterval : timeIntervals){
+			extractHoursSimple(course, hoursOfDay, timeInterval);
 		}
 	}
 	
-	private void extractHoursSimple(EnumMap<DayOfWeek, Hours> hoursOfDay, String[] timeBox) {
+	private void extractHoursSimple(Course course, EnumMap<DayOfWeek, Hours> hoursOfDay, String timeInterval) {
+		setTimeContentInCourse(course, timeInterval);
+		
+		String[] timeBox = timeInterval.split("\\s+");
 		//"TR" -> 'T' 'R'
 		char[] days = timeBox[0].toCharArray();
 		
@@ -199,10 +213,19 @@ public class Scraper {
 					case 'S': hoursOfDay.put(DayOfWeek.SATURDAY,hours); break;
 				}
 			}
-			
 		}catch(Exception e){
 			System.out.println(interval);
 			e.printStackTrace();
+		}
+	}
+	
+	private void setTimeContentInCourse(Course course, String timeInterval) {
+		// simply set timeInterval in course attributes timeContent
+		String newTimeInterval = (timeInterval.charAt(timeInterval.length()-1) == '\n') ? timeInterval.substring(0,timeInterval.length()-1) : timeInterval;
+		if(course.getTimeContent() == null || course.getTimeContent().length() == 0 ||course.getTimeContent().charAt(course.getTimeContent().length()-1) == '\n'){
+			course.setTimeContent(newTimeInterval);
+		}else{
+			course.setTimeContent(course.getTimeContent() + "\n" + newTimeInterval);
 		}
 	}
 	
