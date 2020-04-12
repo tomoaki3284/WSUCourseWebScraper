@@ -7,8 +7,11 @@ import java.util.List;
 public class Course {
 	//first cell
 	private String courseCRN;
+	private String subject;
 	//second cell
 	private String title;
+	private boolean isLabCourse;
+	private String courseDescription;
 	//fourth cell
 	private String faculty;
 	//sixth cell
@@ -18,15 +21,15 @@ public class Course {
 	//eighth cell
 	private List<String> cores;
 	//fifth cell
-	private EnumMap<DayOfWeek, Hours> hoursOfDay; // use this to detect the overlap
+	private EnumMap<DayOfWeek, List<Hours>> hoursOfDay; // use this to detect the overlap
 	private String timeContent;
 	
 	public Course() {
 		cores = new ArrayList();
-		hoursOfDay = new EnumMap<DayOfWeek, Hours>(DayOfWeek.class);
+		hoursOfDay = new EnumMap<DayOfWeek, List<Hours>>(DayOfWeek.class);
 	}
 	
-	public Course(String courseCRN, String title, String faculty, String room, double credit, List<String> cores, EnumMap<DayOfWeek,Hours> hoursOfDay, String timeContent) {
+	public Course(String courseCRN, String title, String faculty, String room, double credit, List<String> cores, EnumMap<DayOfWeek,List<Hours>> hoursOfDay, String timeContent) {
 		this.courseCRN = courseCRN;
 		this.title = title;
 		this.faculty = faculty;
@@ -44,8 +47,32 @@ public class Course {
 		this.room = room;
 		this.credit = credit;
 		this.cores = new ArrayList<String>();
-		this.hoursOfDay = new EnumMap<DayOfWeek, Hours>(DayOfWeek.class);
+		this.hoursOfDay = new EnumMap<DayOfWeek, List<Hours>>(DayOfWeek.class);
 		this.timeContent = timeContent;
+	}
+	
+	public String getCourseDescription() {
+		return courseDescription;
+	}
+	
+	public void setCourseDescription(String courseDescription) {
+		this.courseDescription = courseDescription;
+	}
+	
+	public String getSubject() {
+		return subject;
+	}
+	
+	public void setSubject(String subject) {
+		this.subject = subject;
+	}
+	
+	public boolean getIsLabCourse() {
+		return isLabCourse;
+	}
+	
+	public void serIsLabCourse(boolean isLabCourse) {
+		this.isLabCourse = isLabCourse;
 	}
 	
 	public String getCourseCRN() {
@@ -96,19 +123,19 @@ public class Course {
 		cores.add(core);
 	}
 	
-	public EnumMap<DayOfWeek,Hours> getHoursOfDay() {
+	public EnumMap<DayOfWeek,List<Hours>> getHoursOfDay() {
 		return hoursOfDay;
 	}
 	
-	public Hours getHoursFromDay(DayOfWeek day) {
+	public List<Hours> getHoursFromDay(DayOfWeek day) {
 		return hoursOfDay.get(day);
 	}
 	
-	public void putHoursOfDay(DayOfWeek dayOfWeek, Hours hours) {
+	public void putHoursOfDay(DayOfWeek dayOfWeek, List<Hours> hours) {
 		hoursOfDay.put(dayOfWeek, hours);
 	}
 	
-	public void setHoursOfDay(EnumMap<DayOfWeek, Hours> hoursOfDay) {
+	public void setHoursOfDay(EnumMap<DayOfWeek, List<Hours>> hoursOfDay) {
 		this.hoursOfDay = hoursOfDay;
 	}
 	
@@ -124,6 +151,9 @@ public class Course {
 	public String toString() {
 		return "Course{" +
 			"courseCRN='" + courseCRN + '\'' +
+			", subject='" + subject + '\'' +
+			", isLabCourse=" + isLabCourse +
+			", courseDescription='" + courseDescription + '\'' +
 			", title='" + title + '\'' +
 			", faculty='" + faculty + '\'' +
 			", room='" + room + '\'' +

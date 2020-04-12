@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 
 import tomoaki.courseClasses.Course;
@@ -36,6 +37,7 @@ public class Scraper {
 	}
 	
 	public Scraper(String URL) {
+		long start = System.currentTimeMillis();
 		courses = new ArrayList<Course>();
 		
 		WebClient client = new WebClient();
@@ -62,11 +64,30 @@ public class Scraper {
 				courses.add(course);
 			}
 			
-			//check
+			//check anything
+			HashSet<String> subjects = new HashSet();
 			for(Course course : courses){
-				System.out.println(course.getTimeContent());
-				System.out.println("------------------------------");
+				if(!course.getIsLabCourse()){
+					String subject = course.getCourseCRN().split(" ")[0];
+					course.setSubject(subject);
+					subjects.add(subject);
+				}
 			}
+			
+			String[] subs = new String[subjects.size()];
+			
+			Iterator it = subjects.iterator();
+			int i=0;
+			while(it.hasNext()){
+				subs[i++] = (String) it.next();
+			}
+			
+			Arrays.sort(subs, (a,b) -> a.compareTo(b));
+			for(String sub : subs){
+				System.out.println(sub);
+			}
+			
+			System.out.println("Time" + ((System.currentTimeMillis() - start) / 1000));
 		}catch(Exception e){
 			e.printStackTrace();
 		}
@@ -118,7 +139,7 @@ public class Scraper {
 		if(content == null || content.length() == 0 || timeCells.length < 4){
 			return;
 		}
-		EnumMap<DayOfWeek, Hours> hoursOfDay = new EnumMap<DayOfWeek, Hours>(DayOfWeek.class);
+		EnumMap<DayOfWeek, List<Hours>> hoursOfDay = new EnumMap<>(DayOfWeek.class);
 		
 		// if third(0-base) timeCell length in timeCells is larger than 2, it is complex form
 		if(timeCells[3].length() > 2){
@@ -139,7 +160,7 @@ public class Scraper {
 	 *
 	 *                   Input Simple Format:  "R 09:30 AM-10:30 PM"
 	 */
-	private void extractHoursComplex(Course course, EnumMap<DayOfWeek, Hours> hoursOfDay, String timeAsText) {
+	private void extractHoursComplex(Course course, EnumMap<DayOfWeek, List<Hours>> hoursOfDay, String timeAsText) {
 		String[] timeCells = timeAsText.split("\\s+");
 		
 		// timeCells has two(or more) time interval.
@@ -169,7 +190,7 @@ public class Scraper {
 		}
 	}
 	
-	private void extractHoursSimple(Course course, EnumMap<DayOfWeek, Hours> hoursOfDay, String timeInterval) {
+	private void extractHoursSimple(Course course, EnumMap<DayOfWeek, List<Hours>> hoursOfDay, String timeInterval) {
 		setTimeContentInCourse(course, timeInterval);
 		
 		String[] timeBox = timeInterval.split("\\s+");
@@ -187,17 +208,44 @@ public class Scraper {
 			Hours hours = new Hours(interval);
 			for(char day : days){
 				switch(day){
-					case 'M': hoursOfDay.put(DayOfWeek.MONDAY, hours); break;
-					case 'T': hoursOfDay.put(DayOfWeek.TUESDAY, hours); break;
-					case 'W': hoursOfDay.put(DayOfWeek.WEDNESDAY, hours); break;
-					case 'R': hoursOfDay.put(DayOfWeek.THURSDAY, hours); break;
-					case 'F': hoursOfDay.put(DayOfWeek.FRIDAY, hours); break;
-					case 'S': hoursOfDay.put(DayOfWeek.SATURDAY,hours); break;
+					case 'M':
+						handleChangesOnHoursMap(DayOfWeek.MONDAY, hoursOfDay, hours);
+						break;
+						
+					case 'T':
+						handleChangesOnHoursMap(DayOfWeek.TUESDAY, hoursOfDay, hours);
+						break;
+						
+					case 'W':
+						handleChangesOnHoursMap(DayOfWeek.WEDNESDAY, hoursOfDay, hours);
+						break;
+						
+					case 'R':
+						handleChangesOnHoursMap(DayOfWeek.THURSDAY, hoursOfDay, hours);
+						break;
+						
+					case 'F':
+						handleChangesOnHoursMap(DayOfWeek.FRIDAY, hoursOfDay, hours);
+						break;
+						
+					case 'S':
+						handleChangesOnHoursMap(DayOfWeek.SATURDAY, hoursOfDay, hours);
+						break;
 				}
 			}
 		}catch(Exception e){
 			System.out.println(interval);
 			e.printStackTrace();
+		}
+	}
+	
+	public void handleChangesOnHoursMap(DayOfWeek day, EnumMap<DayOfWeek,List<Hours>> hoursOfDay, Hours hours) {
+		if(hoursOfDay.get(day) == null){
+			List<Hours> hoursList = new ArrayList();
+			hoursList.add(hours);
+			hoursOfDay.put(day, hoursList);
+		}else{
+			hoursOfDay.get(day).add(hours);
 		}
 	}
 	
@@ -223,6 +271,30 @@ public class Scraper {
 			title = anchor.getTextContent();
 		}
 		course.setTitle(title);
+		
+		// extract course description
+		List<HtmlElement> div = htmlElement.getByXPath("div");
+		if(div != null && div.size() != 0){
+			DomNode divChild = div.get(0).getFirstByXPath("div[@class='h2']");
+			String description = divChild.getTextContent().trim();
+			if(description != null && description.length() > 0){
+				course.setCourseDescription(description);
+			}else{
+				course.setCourseDescription("***No Available Description***");
+			}
+		}
+		
+		// detect if it is Lab course
+		String[] words = title.split(" ");
+		if(words != null && words.length != 0){
+			if(words[words.length-1].toLowerCase().equals("lab")){
+				course.serIsLabCourse(true);
+			}else{
+				course.serIsLabCourse(false);
+			}
+		}else{
+			course.serIsLabCourse(false);
+		}
 	}
 
 	private void scrapeFirstCell(Course course, HtmlElement htmlElement) {

@@ -74,54 +74,54 @@ public class Schedule {
 	 *
 	 * @return True, if some course hours is overlapped
 	 */
-	public boolean isHoursOverlap() {
-		if(courses.size() <= 1) return false;
-		// loop courses
-		// Store Hours in Map<DayOfWeek, List<Hours>>
-		EnumMap<DayOfWeek,List<Hours>> map = new EnumMap<>(DayOfWeek.class);
-		for(Course course : courses){
-			for(DayOfWeek day : course.getHoursOfDay().keySet()){
-				Hours hours = course.getHoursFromDay(day);
-				if(map.get(day) == null){
-					ArrayList<Hours> list = new ArrayList();
-					list.add(hours);
-					map.put(day, list);
-				}else{
-					map.get(day).add(hours);
-				}
-			}
-		}
-		
-		// sort Hours by START
-		// check if prev course START exceed next course END
-		for(DayOfWeek day : map.keySet()){
-			List<Hours> list = map.get(day);
-			PriorityQueue<Hours> minHeap = new PriorityQueue<Hours>((a,b) -> {
-				if(a.getStartHour() == b.getStartHour()){
-					return a.getStartMinute() - b.getStartMinute();
-				}
-				return a.getStartHour() - b.getStartHour();
-			});
-			
-			for(Hours hours : list){
-				minHeap.offer(hours);
-			}
-			
-			if(minHeap.size() <= 1) continue;
-			
-			Hours prev = minHeap.poll();
-			while(!minHeap.isEmpty()){
-				Hours current = minHeap.poll();
-				if(prev.getStartHour() == current.getStartHour()){
-					if(prev.getStartMinute() > current.getStartMinute()){
-						return true;
-					}
-				}else if(prev.getStartHour() > prev.getStartHour()){
-					return true;
-				}
-			}
-		}
-		
-		return false;
-	}
+//	public boolean isHoursOverlap() {
+//		if(courses.size() <= 1) return false;
+//		// loop courses
+//		// Store Hours in Map<DayOfWeek, List<Hours>>
+//		EnumMap<DayOfWeek,List<Hours>> map = new EnumMap<>(DayOfWeek.class);
+//		for(Course course : courses){
+//			for(DayOfWeek day : course.getHoursOfDay().keySet()){
+//				Hours hours = course.getHoursFromDay(day);
+//				if(map.get(day) == null){
+//					ArrayList<Hours> list = new ArrayList();
+//					list.add(hours);
+//					map.put(day, list);
+//				}else{
+//					map.get(day).add(hours);
+//				}
+//			}
+//		}
+//
+//		// sort Hours by START
+//		// check if prev course START exceed next course END
+//		for(DayOfWeek day : map.keySet()){
+//			List<Hours> list = map.get(day);
+//			PriorityQueue<Hours> minHeap = new PriorityQueue<Hours>((a,b) -> {
+//				if(a.getStartHour() == b.getStartHour()){
+//					return a.getStartMinute() - b.getStartMinute();
+//				}
+//				return a.getStartHour() - b.getStartHour();
+//			});
+//
+//			for(Hours hours : list){
+//				minHeap.offer(hours);
+//			}
+//
+//			if(minHeap.size() <= 1) continue;
+//
+//			Hours prev = minHeap.poll();
+//			while(!minHeap.isEmpty()){
+//				Hours current = minHeap.poll();
+//				if(prev.getStartHour() == current.getStartHour()){
+//					if(prev.getStartMinute() > current.getStartMinute()){
+//						return true;
+//					}
+//				}else if(prev.getStartHour() > prev.getStartHour()){
+//					return true;
+//				}
+//			}
+//		}
+//
+//		return false;
+//	}
 }
