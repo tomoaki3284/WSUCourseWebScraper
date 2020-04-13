@@ -23,6 +23,8 @@ public class Course {
 	//fifth cell
 	private EnumMap<DayOfWeek, List<Hours>> hoursOfDay; // use this to detect the overlap
 	private String timeContent;
+	// detect afterwards
+	private boolean isCancelled;
 	
 	public Course() {
 		cores = new ArrayList();
@@ -114,53 +116,62 @@ public class Course {
 	public void setCredit(double credit) {
 		this.credit = credit;
 	}
-	
-	public List<String> getCores() {
-		return cores;
-	}
-	
-	public void addCore(String core) {
-		cores.add(core);
-	}
-	
-	public EnumMap<DayOfWeek,List<Hours>> getHoursOfDay() {
-		return hoursOfDay;
-	}
-	
-	public List<Hours> getHoursFromDay(DayOfWeek day) {
-		return hoursOfDay.get(day);
-	}
-	
-	public void putHoursOfDay(DayOfWeek dayOfWeek, List<Hours> hours) {
-		hoursOfDay.put(dayOfWeek, hours);
-	}
-	
-	public void setHoursOfDay(EnumMap<DayOfWeek, List<Hours>> hoursOfDay) {
-		this.hoursOfDay = hoursOfDay;
-	}
-	
-	public String getTimeContent() {
-		return timeContent;
-	}
-	
-	public void setTimeContent(String timeContent) {
-		this.timeContent = timeContent;
-	}
-	
-	@Override
-	public String toString() {
-		return "Course{" +
-			"courseCRN='" + courseCRN + '\'' +
-			", subject='" + subject + '\'' +
-			", isLabCourse=" + isLabCourse +
-			", courseDescription='" + courseDescription + '\'' +
-			", title='" + title + '\'' +
-			", faculty='" + faculty + '\'' +
-			", room='" + room + '\'' +
-			", credit=" + credit +
-			", cores=" + cores +
-			", hoursOfDay=" + hoursOfDay +
-			", timeContent='" + timeContent + '\'' +
-			"}";
-	}
+		
+		public List<String> getCores() {
+			return cores;
+		}
+		
+		public void addCore(String core) {
+			cores.add(core);
+		}
+		
+		public EnumMap<DayOfWeek,List<Hours>> getHoursOfDay() {
+			return hoursOfDay;
+		}
+		
+		public List<Hours> getHoursFromDay(DayOfWeek day) {
+			return hoursOfDay.get(day);
+		}
+		
+		public boolean getIsCancelled() {
+			return isCancelled;
+		}
+		
+		public void setIsCancelled(boolean isCancelled) {
+			this.isCancelled = isCancelled;
+		}
+		
+		public void putHoursOfDay(DayOfWeek dayOfWeek, List<Hours> hours) {
+			hoursOfDay.put(dayOfWeek, hours);
+		}
+		
+		public void setHoursOfDay(EnumMap<DayOfWeek, List<Hours>> hoursOfDay) {
+			this.hoursOfDay = hoursOfDay;
+		}
+		
+		public String getTimeContent() {
+			return timeContent;
+		}
+		
+		public void setTimeContent(String timeContent) {
+			this.timeContent = timeContent;
+		}
+		
+		@Override
+		public String toString() {
+			return "Course{" +
+				"courseCRN='" + courseCRN + '\'' +
+				", subject='" + subject + '\'' +
+				", isLabCourse=" + isLabCourse +
+				", courseDescription='" + courseDescription + '\'' +
+				", title='" + title + '\'' +
+				", faculty='" + faculty + '\'' +
+				", room='" + room + '\'' +
+				", credit=" + credit +
+				", cores=" + cores +
+				", hoursOfDay=" + hoursOfDay +
+				", timeContent='" + timeContent + '\'' +
+				", isCancelled=" + isCancelled +
+				"}";
+		}
 }

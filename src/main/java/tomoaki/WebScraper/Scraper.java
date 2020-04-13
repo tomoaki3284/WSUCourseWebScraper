@@ -64,6 +64,13 @@ public class Scraper {
 				courses.add(course);
 			}
 			
+			// detect isCancelled
+			for(Course course : courses){
+				if(course.getRoom().length() == 0 && course.getFaculty().equals("STAFF") && course.getHoursOfDay().size() == 0){
+					course.setIsCancelled(true);
+				}
+			}
+			
 			//check anything
 			HashSet<String> subjects = new HashSet();
 			for(Course course : courses){
@@ -87,7 +94,7 @@ public class Scraper {
 				System.out.println(sub);
 			}
 			
-			System.out.println("Time" + ((System.currentTimeMillis() - start) / 1000));
+			System.out.println("Time: " + ((System.currentTimeMillis() - start) / 1000) + " second");
 		}catch(Exception e){
 			e.printStackTrace();
 		}

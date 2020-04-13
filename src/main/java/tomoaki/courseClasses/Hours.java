@@ -10,7 +10,7 @@ public class Hours {
 
   // hours [0..23]/minute[0..59] in military (24h format)
   private int startHour, startMinute, endHour, endMinute;
-  private String milTime;
+  private String militaryTime;
   
   public void setStartHour(int startHour) {
     this.startHour = startHour;
@@ -196,7 +196,7 @@ public class Hours {
   }
   
   public String getMilitaryTime() {
-    if(milTime != null) return milTime;
+    if(militaryTime != null) return militaryTime;
     
     String smilHour = "";
     String smilMin = "";
@@ -224,8 +224,8 @@ public class Hours {
       emilMin = Integer.toString(endMinute);
     }
     
-    milTime =  smilHour + ":" + smilMin + "-" + emilHour + ":" + emilMin;
-    return milTime;
+    militaryTime =  smilHour + ":" + smilMin + "-" + emilHour + ":" + emilMin;
+    return militaryTime;
   }
   
   public String toString(){
