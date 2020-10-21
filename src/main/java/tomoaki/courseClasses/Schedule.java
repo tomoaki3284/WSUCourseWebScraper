@@ -1,11 +1,12 @@
 package tomoaki.courseClasses;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.PriorityQueue;
 
-public class Schedule {
+public class Schedule implements Serializable {
 	List<Course> courses;
 	double totalCredit;
 	
@@ -25,6 +26,15 @@ public class Schedule {
 	
 	public double getTotalCredit() {
 		return totalCredit;
+	}
+	
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		for(Course course : courses){
+			sb.append(course.toString());
+			sb.append("\n");
+		}
+		return sb.toString();
 	}
 	
 //	public List<Course> filterByCourseCategory(String category) {

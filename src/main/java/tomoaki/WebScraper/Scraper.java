@@ -124,7 +124,7 @@ public class Scraper {
 	}
 	
 	/**
-	 * TODO: Detect whether content hours is in complex form or simple form
+	 * Detect whether content hours is in complex form or simple form
 	 * Remove unneeded content: <strong>Hybrid(...)</>
 	 *                          <strong>First/Second(...)</>
 	 *                          if child node exist
@@ -134,10 +134,14 @@ public class Scraper {
 		
 		DomNode child = htmlElement.getLastElementChild();
 		String childTagName = null;
+		// if child/<strong> tag exist
 		if(child != null){
 			String timeContent = child.getTextContent().trim();
 			course.setTimeContent(timeContent);
 			childTagName = child.getNodeName();
+			// TODO: 2020/10/21:
+			// when child tag is <strong> this code works, because <strong> wrap "Hybrid(...)"
+			// if child tag is <br> this code would not remove, since <br> tag is not wrapper tag
 			htmlElement.removeChild(childTagName,0);
 			content = htmlElement.getTextContent();
 		}
@@ -160,7 +164,7 @@ public class Scraper {
 	}
 	
 	/**
-	 * TODO: Extract/separate time interval in a form of Simple Form
+	 * Extract/separate time interval in a form of Simple Form
 	 *
 	 * @param hoursOfDay
 	 * @param timeAsText Input Complex Format: "R 09:30 AM-10:30 PMMWF 11:45 AM-12:45 PM"
@@ -204,6 +208,7 @@ public class Scraper {
 		//"TR" -> 'T' 'R'
 		char[] days = timeBox[0].toCharArray();
 		
+		if(timeBox.length < 2) return;
 		// "PM-02:00" -> "PM" "02:00"
 		String[] timeTag_endTime = timeBox[2].split("-");
 		

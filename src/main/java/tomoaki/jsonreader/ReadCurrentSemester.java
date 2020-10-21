@@ -5,10 +5,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import tomoaki.courseClasses.Course;
 
 public class ReadCurrentSemester {
+	
+	List<Course> courses;
+	
+	public ReadCurrentSemester() {
+		courses = getCourses("current-semester.json");
+	}
+	
+	public List<Course> getCourses() {
+		return courses;
+	}
+	
 	public static List<Course> getCourses(String fileName) {
 		File courseFile = new File(fileName);
 		
@@ -27,8 +39,13 @@ public class ReadCurrentSemester {
 	public static void main(String[] args) {
 		List<Course> courses = getCourses("current-semester.json");
 		
-		for (Course course : courses) {
-			System.out.println(course);
+		HashSet<String> rooms = new HashSet<>();
+		for(Course course : courses){
+			rooms.add(course.getRoom());
+		}
+		
+		for (String room : rooms) {
+			System.out.println(room);
 		}
 	}
 }

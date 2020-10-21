@@ -1,10 +1,11 @@
 package tomoaki.courseClasses;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 
-public class Course {
+public class Course implements Serializable {
 	//first cell
 	private String courseCRN;
 	private String subject;

@@ -1,6 +1,8 @@
 package tomoaki.courseClasses;
 
-public enum DayOfWeek {
+import java.io.Serializable;
+
+public enum DayOfWeek implements Serializable {
 	MONDAY   (1),
 	TUESDAY  (2),
 	WEDNESDAY(3),

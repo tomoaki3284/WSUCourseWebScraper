@@ -1,12 +1,13 @@
 package tomoaki.courseClasses;
 
+import java.io.Serializable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * Class to represent the opening and closing hours of a given dining location
  */
-public class Hours {
+public class Hours implements Serializable  {
 
   // hours [0..23]/minute[0..59] in military (24h format)
   private int startHour, startMinute, endHour, endMinute;
