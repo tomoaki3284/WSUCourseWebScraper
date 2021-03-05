@@ -43,6 +43,8 @@ public class Scraper {
 		WebClient client = new WebClient();
 		client.getOptions().setCssEnabled(false);
 		client.getOptions().setJavaScriptEnabled(false);
+		
+		System.out.println("Scrap Start");
 
 		try{
 			HtmlPage page = client.getPage(URL);
@@ -64,6 +66,10 @@ public class Scraper {
 				courses.add(course);
 			}
 			
+			/*
+			 * ---------- below is for cleaning up edge cases -----------
+			 */
+			
 			// detect isCancelled
 			for(Course course : courses){
 				if(course.getRoom().length() == 0 && course.getFaculty().equals("STAFF") && course.getHoursOfDay().size() == 0){
@@ -71,28 +77,33 @@ public class Scraper {
 				}
 			}
 			
-			//check anything
+			// set subject
 			HashSet<String> subjects = new HashSet();
 			for(Course course : courses){
 				if(!course.getIsLabCourse()){
 					String subject = course.getCourseCRN().split(" ")[0];
 					course.setSubject(subject);
 					subjects.add(subject);
+				} else {
+					String subject = "Lab";
+					course.setSubject(subject);
 				}
 			}
 			
-			String[] subs = new String[subjects.size()];
-			
-			Iterator it = subjects.iterator();
-			int i=0;
-			while(it.hasNext()){
-				subs[i++] = (String) it.next();
+			// set course description edge cases
+			for (Course course : courses) {
+				if (course.getCourseDescription() == null || course.getCourseDescription().length() == 0) {
+					course.setCourseDescription("Not available");
+				}
 			}
 			
-			Arrays.sort(subs, (a,b) -> a.compareTo(b));
-			for(String sub : subs){
-				System.out.println(sub);
-			}
+			
+			/*
+			 * ------------- Edge cases clean up end -------------
+			 */
+			
+			
+			//check anything
 			
 			System.out.println("Time: " + ((System.currentTimeMillis() - start) / 1000) + " second");
 		}catch(Exception e){
