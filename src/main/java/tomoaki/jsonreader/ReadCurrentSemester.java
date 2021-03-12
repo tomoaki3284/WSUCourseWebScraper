@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import tomoaki.courseClasses.Course;
@@ -39,13 +41,25 @@ public class ReadCurrentSemester {
 	public static void main(String[] args) {
 		List<Course> courses = getCourses("current-semester.json");
 		
-		HashSet<String> rooms = new HashSet<>();
-		for(Course course : courses){
-			rooms.add(course.getRoom());
+		// do whatever
+		
+		
+		HashSet<String> subjects = new HashSet<>();
+		for (Course course : courses) {
+			subjects.add(course.getSubject());
 		}
 		
-		for (String room : rooms) {
-			System.out.println(room);
+		String[] subs = new String[subjects.toArray().length];
+		int i = 0;
+		for (Object sub : subjects.toArray()) {
+			subs[i++] = sub.toString();
+		}
+		
+		Arrays.sort(subs);
+		
+		for (String sub : subs) {
+			if (sub == null || sub.toString().toLowerCase().equals("lab")) continue;
+			System.out.println("\'" + sub.toString() + "\',");
 		}
 	}
 }
