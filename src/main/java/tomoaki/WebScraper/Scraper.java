@@ -56,6 +56,8 @@ public class Scraper {
 				
 				//extract information to instantiate Course object
 				Course course = new Course();
+				// whats is first cell, second cell, etc??
+				// take a look at the website, it is about the table cell
 				scrapeFirstCell(course, tds.get(0));
 				scrapeSecondCell(course, tds.get(1));
 				scrapeFourthCell(course, tds.get(3));
