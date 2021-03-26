@@ -5,9 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import tomoaki.courseClasses.Course;
 
@@ -43,23 +40,30 @@ public class ReadCurrentSemester {
 		
 		// do whatever
 		
+//		for (Course course : courses) {
+//			if (course.getHoursOfDay() == null || course.getHoursOfDay().size() == 0) {
+//				if (course.getRoom().toLowerCase().equals('online') || course.getRoom().toLowerCase().equals("remsyc")) {
+//
+//				}
+//			}
+//		}
 		
-		HashSet<String> subjects = new HashSet<>();
-		for (Course course : courses) {
-			subjects.add(course.getSubject());
-		}
-		
-		String[] subs = new String[subjects.toArray().length];
-		int i = 0;
-		for (Object sub : subjects.toArray()) {
-			subs[i++] = sub.toString();
-		}
-		
-		Arrays.sort(subs);
-		
-		for (String sub : subs) {
-			if (sub == null || sub.toString().toLowerCase().equals("lab")) continue;
-			System.out.println("\'" + sub.toString() + "\',");
-		}
+//		HashSet<String> subjects = new HashSet<>();
+//		for (Course course : courses) {
+//			subjects.add(course.getSubject());
+//		}
+//
+//		String[] subs = new String[subjects.toArray().length];
+//		int i = 0;
+//		for (Object sub : subjects.toArray()) {
+//			subs[i++] = sub.toString();
+//		}
+//
+//		Arrays.sort(subs);
+//
+//		for (String sub : subs) {
+//			if (sub == null || sub.toString().toLowerCase().equals("lab")) continue;
+//			System.out.println("\'" + sub.toString() + "\',");
+//		}
 	}
 }

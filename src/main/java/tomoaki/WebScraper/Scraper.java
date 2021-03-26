@@ -1,5 +1,9 @@
 package tomoaki.WebScraper;
 
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.Bucket;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gargoylesoftware.htmlunit.WebClient;
@@ -345,4 +349,21 @@ public class Scraper {
 		List<Course> courses = scraper.getCourses();
 		scraper.writeToJSON("current-semester.json");
 	}
+	
+	
+	// ---------------- S3 upload ----------------
+	
+	public static Bucket getBucket(final String bucketName) {
+		final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion(Regions.DEFAULT_REGION).build();
+		Bucket named_bucket = null;
+		List<Bucket> buckets = s3.listBuckets();
+		for (Bucket b : buckets) {
+			if (b.getName().equals(bucketName)) {
+				named_bucket = b;
+			}
+		}
+		return named_bucket;
+	}
+	
+	
 }
