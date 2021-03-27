@@ -3,6 +3,7 @@ package tomoaki.AWS;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
@@ -34,7 +35,7 @@ public class AWSS3Upload {
 	}
 	
 	public static void main(String[] args) {
-		String bucket_name = "wsucoursehelper";
+		String bucket_name = "coursehelper";
 		String path = "/Users/tomoaki3284/IdeaProjects/courseSelector/current-semester.json";
 		String key_name = Paths.get(path).getFileName().toString();
 		
@@ -42,10 +43,9 @@ public class AWSS3Upload {
 		
 		assert(credentialInfo[0] != null && credentialInfo[1] != null && credentialInfo[2] != null);
 		
-		AWSCredentials credentials = new BasicSessionCredentials(
+		AWSCredentials credentials = new BasicAWSCredentials(
 			credentialInfo[0],
-			credentialInfo[1],
-			credentialInfo[2]
+			credentialInfo[1]
 		);
 		
 		assert key_name != null;
@@ -75,7 +75,7 @@ public class AWSS3Upload {
 			scan.nextLine(); // region
 			res[0] = scan.nextLine().split("=")[1]; // aws_access_key_id
 			res[1] = scan.nextLine().split("=")[1]; // aws_secret_access_key
-			res[2] = scan.nextLine().split("=")[1]; // aws_session_token
+//			res[2] = scan.nextLine().split("=")[1]; // aws_session_token
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
