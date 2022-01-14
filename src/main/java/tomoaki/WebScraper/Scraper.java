@@ -1,9 +1,5 @@
 package tomoaki.WebScraper;
 
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.Bucket;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gargoylesoftware.htmlunit.WebClient;
@@ -11,15 +7,22 @@ import com.gargoylesoftware.htmlunit.html.DomNode;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
+import com.google.gson.Gson;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 
+import java.util.Map;
+import org.json.simple.JSONObject;
+import org.w3c.dom.Node;
 import tomoaki.courseClasses.Course;
 import tomoaki.courseClasses.DayOfWeek;
 import tomoaki.courseClasses.Hours;
@@ -28,8 +31,10 @@ public class Scraper {
 
 	private List<Course> courses;
 	
+	private String offeringTerm = "";
+	
 	public Scraper() {
-		this("http://www.westfield.ma.edu/offices/registrar/master-schedule");
+		this("https://www.westfield.ma.edu/offices/registrar/master-schedule");
 	}
 	
 	public List<Course> getCourses() {
@@ -52,6 +57,11 @@ public class Scraper {
 
 		try{
 			HtmlPage page = client.getPage(URL);
+			System.out.println(page);
+			
+			offeringTerm = scrapeCourseOfferingTerm(page);
+			System.out.println(offeringTerm);
+			
 			// In each courseTable, there are list of courses
 			List<HtmlElement> trs = page.getByXPath("//tr");
 			for(HtmlElement tr : trs){
@@ -108,8 +118,18 @@ public class Scraper {
 			 * ------------- Edge cases clean up end -------------
 			 */
 			
-			
-			//check anything
+			// store result
+			JSONObject obj = new JSONObject();
+			LocalDate date = LocalDate.now();
+			obj.put("update-date", date);
+			obj.put("courses", courses);
+			try {
+				FileWriter file = new FileWriter("output.json");
+				file.write(obj.toJSONString());
+				file.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 			
 			System.out.println("Time: " + ((System.currentTimeMillis() - start) / 1000) + " second");
 		}catch(Exception e){
@@ -117,8 +137,18 @@ public class Scraper {
 		}
 	}
 	
+	private String scrapeCourseOfferingTerm(HtmlPage page) {
+		final String xPathExpr = "//div[@class='l-header-generic']/div[@class='l-wrapper blue']/div/div/h1";
+		DomNode node = page.getFirstByXPath(xPathExpr);
+		return node.getTextContent();
+	}
+	
 	private void scrapeEighthCell(Course course, HtmlElement htmlElement) {
 		String[] cores = htmlElement.getTextContent().split("/");
+		if (cores != null && cores.length >= 1 && htmlElement.getFirstChild() != null) {
+			Node s = htmlElement.getFirstChild().getAttributes().getNamedItem("title");
+			cores = s.getNodeValue().split("/");
+		}
 		for(String core : cores){
 			course.addCore(core);
 		}
@@ -293,7 +323,8 @@ public class Scraper {
 		course.setFaculty(faculty);
 	}
 
-	private void scrapeSecondCell(Course course, HtmlElement htmlElement) {
+	private void scrapeSecondCell(Course course, HtmlElement htmlElement)
+		throws UnsupportedEncodingException {
 		String title = htmlElement.getTextContent();
 		DomNode anchor = htmlElement.getFirstByXPath("a");
 		if(anchor != null){
@@ -305,7 +336,7 @@ public class Scraper {
 		List<HtmlElement> div = htmlElement.getByXPath("div");
 		if(div != null && div.size() != 0){
 			DomNode divChild = div.get(0).getFirstByXPath("div[@class='h2']");
-			String description = divChild.getTextContent().trim();
+			String description = divChild.getTextContent().trim().replace('�', ' ');
 			if(description != null && description.length() > 0){
 				course.setCourseDescription(description);
 			}else{
@@ -344,26 +375,22 @@ public class Scraper {
 		}
 	}
 	
+	private void writeToJsonRich(String jsonFileName) {
+		Map<String,Object> map = new HashMap<>();
+		map.put("offering-term", offeringTerm);
+		map.put("courses", courses);
+		
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			mapper.writeValue(Paths.get(jsonFileName).toFile(), map);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public static void main(String[] args) {
 		Scraper scraper = new Scraper();
 		List<Course> courses = scraper.getCourses();
-		scraper.writeToJSON("current-semester.json");
+		scraper.writeToJsonRich("current-semester.json");
 	}
-	
-	
-	// ---------------- S3 upload ----------------
-	
-	public static Bucket getBucket(final String bucketName) {
-		final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion(Regions.DEFAULT_REGION).build();
-		Bucket named_bucket = null;
-		List<Bucket> buckets = s3.listBuckets();
-		for (Bucket b : buckets) {
-			if (b.getName().equals(bucketName)) {
-				named_bucket = b;
-			}
-		}
-		return named_bucket;
-	}
-	
-	
 }

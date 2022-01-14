@@ -4,8 +4,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 import tomoaki.courseClasses.Course;
 
 public class ReadCurrentSemester {
@@ -40,30 +45,22 @@ public class ReadCurrentSemester {
 		
 		// do whatever
 		
-//		for (Course course : courses) {
-//			if (course.getHoursOfDay() == null || course.getHoursOfDay().size() == 0) {
-//				if (course.getRoom().toLowerCase().equals('online') || course.getRoom().toLowerCase().equals("remsyc")) {
-//
-//				}
-//			}
-//		}
-		
-//		HashSet<String> subjects = new HashSet<>();
-//		for (Course course : courses) {
-//			subjects.add(course.getSubject());
-//		}
-//
-//		String[] subs = new String[subjects.toArray().length];
-//		int i = 0;
-//		for (Object sub : subjects.toArray()) {
-//			subs[i++] = sub.toString();
-//		}
-//
-//		Arrays.sort(subs);
-//
-//		for (String sub : subs) {
-//			if (sub == null || sub.toString().toLowerCase().equals("lab")) continue;
-//			System.out.println("\'" + sub.toString() + "\',");
-//		}
+		printCores(courses);
+	}
+	
+	public static void printCores(List<Course> courses) {
+		Set<String> cores = new TreeSet<>();
+		courses.forEach(course -> cores.addAll(course.getCores()));
+		cores.forEach(core -> System.out.print("\'"+core+"\', "));
+	}
+	
+	public static void printCourseThatHasTwoClassInADay(List<Course> courses) {
+		courses.forEach(course -> {
+				course.getHoursOfDay().values().forEach(hours -> {
+					if (hours.size() >= 2) {
+						System.out.println(course.getTitle());
+					}
+				});
+			});
 	}
 }

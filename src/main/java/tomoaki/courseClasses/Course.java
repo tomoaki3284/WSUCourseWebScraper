@@ -157,22 +157,4 @@ public class Course implements Serializable {
 		public void setTimeContent(String timeContent) {
 			this.timeContent = timeContent;
 		}
-		
-		@Override
-		public String toString() {
-			return "Course{" +
-				"courseCRN='" + courseCRN + '\'' +
-				", subject='" + subject + '\'' +
-				", isLabCourse=" + isLabCourse +
-				", courseDescription='" + courseDescription + '\'' +
-				", title='" + title + '\'' +
-				", faculty='" + faculty + '\'' +
-				", room='" + room + '\'' +
-				", credit=" + credit +
-				", cores=" + cores +
-				", hoursOfDay=" + hoursOfDay +
-				", timeContent='" + timeContent + '\'' +
-				", isCancelled=" + isCancelled +
-				"}";
-		}
 }
