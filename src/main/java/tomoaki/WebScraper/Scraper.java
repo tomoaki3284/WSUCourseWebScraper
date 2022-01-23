@@ -7,28 +7,24 @@ import com.gargoylesoftware.htmlunit.html.DomNode;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
-import com.google.gson.Gson;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.nio.file.Paths;
-import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
 import java.util.Map;
-import org.json.simple.JSONObject;
 import org.w3c.dom.Node;
 import tomoaki.courseClasses.Course;
 import tomoaki.courseClasses.DayOfWeek;
 import tomoaki.courseClasses.Hours;
 
 public class Scraper {
-
+	
 	private List<Course> courses;
 	
 	private String offeringTerm = "";
@@ -54,7 +50,7 @@ public class Scraper {
 		client.getOptions().setJavaScriptEnabled(false);
 		
 		System.out.println("Scrap Start");
-
+		
 		try{
 			HtmlPage page = client.getPage(URL);
 			System.out.println(page);
@@ -118,19 +114,6 @@ public class Scraper {
 			 * ------------- Edge cases clean up end -------------
 			 */
 			
-			// store result
-			JSONObject obj = new JSONObject();
-			LocalDate date = LocalDate.now();
-			obj.put("update-date", date);
-			obj.put("courses", courses);
-			try {
-				FileWriter file = new FileWriter("output.json");
-				file.write(obj.toJSONString());
-				file.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			
 			System.out.println("Time: " + ((System.currentTimeMillis() - start) / 1000) + " second");
 		}catch(Exception e){
 			e.printStackTrace();
@@ -153,7 +136,7 @@ public class Scraper {
 			course.addCore(core);
 		}
 	}
-
+	
 	private void scrapeSevenCell(Course course, HtmlElement htmlElement) {
 		String content = htmlElement.getTextContent();
 		double credit;
@@ -164,7 +147,7 @@ public class Scraper {
 		}
 		course.setCredit(credit);
 	}
-
+	
 	private void scrapeSixthCell(Course course, HtmlElement htmlElement) {
 		String content = htmlElement.getTextContent();
 		course.setRoom(content);
@@ -255,11 +238,16 @@ public class Scraper {
 		//"TR" -> 'T' 'R'
 		char[] days = timeBox[0].toCharArray();
 		
-		if(timeBox.length < 2) return;
+		if(timeBox.length < 3) return;
 		// "PM-02:00" -> "PM" "02:00"
 		String[] timeTag_endTime = timeBox[2].split("-");
 		
 		//concat times // might change it to StringBuilder for time complexity
+		if (timeTag_endTime.length < 2) {
+			course.setHoursOfDay(new EnumMap<DayOfWeek, List<Hours>>(DayOfWeek.class));
+			return;
+		}
+		
 		String startTime = timeBox[1] + timeTag_endTime[0].toLowerCase();
 		String endTime = timeTag_endTime[1] + timeBox[timeBox.length-1].toLowerCase();
 		String interval = startTime + "-" + endTime;
@@ -270,23 +258,23 @@ public class Scraper {
 					case 'M':
 						handleChangesOnHoursMap(DayOfWeek.MONDAY, hoursOfDay, hours);
 						break;
-						
+					
 					case 'T':
 						handleChangesOnHoursMap(DayOfWeek.TUESDAY, hoursOfDay, hours);
 						break;
-						
+					
 					case 'W':
 						handleChangesOnHoursMap(DayOfWeek.WEDNESDAY, hoursOfDay, hours);
 						break;
-						
+					
 					case 'R':
 						handleChangesOnHoursMap(DayOfWeek.THURSDAY, hoursOfDay, hours);
 						break;
-						
+					
 					case 'F':
 						handleChangesOnHoursMap(DayOfWeek.FRIDAY, hoursOfDay, hours);
 						break;
-						
+					
 					case 'S':
 						handleChangesOnHoursMap(DayOfWeek.SATURDAY, hoursOfDay, hours);
 						break;
@@ -322,7 +310,7 @@ public class Scraper {
 		String faculty = htmlElement.getTextContent().trim();
 		course.setFaculty(faculty);
 	}
-
+	
 	private void scrapeSecondCell(Course course, HtmlElement htmlElement)
 		throws UnsupportedEncodingException {
 		String title = htmlElement.getTextContent();
@@ -356,7 +344,7 @@ public class Scraper {
 			course.serIsLabCourse(false);
 		}
 	}
-
+	
 	private void scrapeFirstCell(Course course, HtmlElement htmlElement) {
 		String content = htmlElement.getTextContent();
 		course.setCourseCRN(content);
@@ -380,9 +368,10 @@ public class Scraper {
 		map.put("offering-term", offeringTerm);
 		map.put("courses", courses);
 		
+		File file = new File(jsonFileName);
 		ObjectMapper mapper = new ObjectMapper();
 		try {
-			mapper.writeValue(Paths.get(jsonFileName).toFile(), map);
+			mapper.writeValue(file, map);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

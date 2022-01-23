@@ -118,43 +118,43 @@ public class Course implements Serializable {
 		this.credit = credit;
 	}
 		
-		public List<String> getCores() {
-			return cores;
-		}
-		
-		public void addCore(String core) {
-			cores.add(core);
-		}
-		
-		public EnumMap<DayOfWeek,List<Hours>> getHoursOfDay() {
-			return hoursOfDay;
-		}
-		
-		public List<Hours> getHoursFromDay(DayOfWeek day) {
-			return hoursOfDay.get(day);
-		}
-		
-		public boolean getIsCancelled() {
-			return isCancelled;
-		}
-		
-		public void setIsCancelled(boolean isCancelled) {
-			this.isCancelled = isCancelled;
-		}
-		
-		public void putHoursOfDay(DayOfWeek dayOfWeek, List<Hours> hours) {
-			hoursOfDay.put(dayOfWeek, hours);
-		}
-		
-		public void setHoursOfDay(EnumMap<DayOfWeek, List<Hours>> hoursOfDay) {
-			this.hoursOfDay = hoursOfDay;
-		}
-		
-		public String getTimeContent() {
-			return timeContent;
-		}
-		
-		public void setTimeContent(String timeContent) {
-			this.timeContent = timeContent;
-		}
+	public List<String> getCores() {
+		return cores;
+	}
+	
+	public void addCore(String core) {
+		cores.add(core);
+	}
+	
+	public EnumMap<DayOfWeek,List<Hours>> getHoursOfDay() {
+		return hoursOfDay;
+	}
+	
+	public List<Hours> getHoursFromDay(DayOfWeek day) {
+		return hoursOfDay.get(day);
+	}
+	
+	public boolean getIsCancelled() {
+		return isCancelled;
+	}
+	
+	public void setIsCancelled(boolean isCancelled) {
+		this.isCancelled = isCancelled;
+	}
+	
+	public void putHoursOfDay(DayOfWeek dayOfWeek, List<Hours> hours) {
+		hoursOfDay.put(dayOfWeek, hours);
+	}
+	
+	public void setHoursOfDay(EnumMap<DayOfWeek, List<Hours>> hoursOfDay) {
+		this.hoursOfDay = hoursOfDay;
+	}
+	
+	public String getTimeContent() {
+		return timeContent;
+	}
+	
+	public void setTimeContent(String timeContent) {
+		this.timeContent = timeContent;
+	}
 }
